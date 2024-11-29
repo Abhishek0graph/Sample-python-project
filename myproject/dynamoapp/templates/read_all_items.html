@@ -1,33 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Read All Items</title>
+    <title>Items List</title>
 </head>
 <body>
     <h1>Items List</h1>
-    <div id="items-list"></div>
-    <script>
-        fetch("/read_all_items/")
-            .then(response => response.json())
-            .then(data => {
-                const itemsList = document.getElementById("items-list");
-                if (data.items.length === 0) {
-                    itemsList.innerHTML = "<p>No items found.</p>";
-                } else {
-                    itemsList.innerHTML = "<ul>" + 
-                        data.items.map(item => `
-                            <li>
-                                <strong>ID:</strong> ${item.id} <br>
-                                <strong>Name:</strong> ${item.item_name} <br>
-                                <strong>Description:</strong> ${item.item_description} <br>
-                                <strong>Image URL:</strong> <a href="${item.image_url}" target="_blank">${item.image_url}</a> <br>
-                                <strong>Labels:</strong> ${item.image_label.join(", ")} <br>
-                            </li>
-                        `).join("") +
-                        "</ul>";
-                }
-            })
-            .catch(error => console.error("Error fetching items:", error));
-    </script>
+
+    {% if items and items|length > 0 %}
+        <ul>
+            {% for item in items %}
+                <li>
+                    <!-- <strong>ID:</strong> {{ item.id }} <br> -->
+                    <!-- <strong>Name:</strong> {{ item.item_name }} <br> -->
+                    <!-- <strong>Description:</strong> {{ item.item_description }} <br> -->
+                    <!-- {% if item.image_url %} -->
+                    <!-- <strong>Image:</strong> <img src="{{ item.image_url }}" alt="Image for {{ item.item_name }}" style="max-width: 200px; max-height: 200px;"> <br> -->
+                    <!-- {% endif %} -->
+                    <!-- {% if item.image_label %} -->
+                        <!-- <strong>Labels:</strong> {{ item.image_label }} <br> -->
+                    <!-- {% endif %} -->
+
+                    <!-- Update Form -->
+                    <form method="POST" action="/update_item/" style="margin-top: 20px;">
+                        {% csrf_token %}
+                        <label for="item_id_{{ item.id }}">Name:</label>
+                        <input type="text" name="item_id" id="item_id_{{ item.id }}" value="{{ item.id }}" readonly><br>
+
+                        <label for="item_name_{{ item.id }}">Name:</label>
+                        <input type="text" name="item_name" id="item_name_{{ item.id }}" value="{{ item.item_name }}" required><br>
+
+                        <label for="item_description_{{ item.id }}">Description:</label>
+                        <input type="text" name="item_description" id="item_description_{{ item.id }}" value="{{ item.item_description }}" required><br>
+
+                        <label for="image_url_{{ item.id }}">Image URL:</label>
+                        <input type="text" name="image_url" id="image_url_{{ item.id }}" value="{{ item.image_url }}"><br>
+
+                        <label for="image_label_{{ item.id }}">Labels (comma-separated):</label>
+                        <input type="text" name="image_label" id="image_label_{{ item.id }}" value="{{ item.image_label }}"><br>
+
+                        <button type="submit">Update</button>
+                    </form>
+                    <hr>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No items found.</p>
+    {% endif %}
 </body>
 </html>

@@ -107,21 +107,31 @@ def invoke_lambda_function(payload):
         return None
 
 # Function to read all records from the table
+from django.shortcuts import render
+from django.http import JsonResponse
+
 def read_all_items(request):
     if request.method == "GET":
         try:
-            response = table.scan()  # Get all items from the DynamoDB table
+            # Scan the DynamoDB table to get all items
+            response = table.scan()
             items = response.get("Items", [])
-            # return JsonResponse({"items": items}, status=200)
+            
+            # Pass the items to the template
+            return render(request, 'read_all_items.html', {'items': items})
         except Exception as e:
             print(f"Error reading items: {e}")
             return JsonResponse({"error": "Failed to fetch items."}, status=500)
-    return render(request, 'read_all_items.html')
+    else:
+        # Return a 405 Method Not Allowed for unsupported HTTP methods
+        return JsonResponse({"error": "Method not allowed."}, status=405)
 
 
-def update_item(request, item_id):
+
+def update_item(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        data = request.POST
+        item_id=data.get("item_id")
         updated_name = data.get("item_name")
         updated_description = data.get("item_description")
         updated_image_url = data.get("image_url")
@@ -147,7 +157,12 @@ def update_item(request, item_id):
                     ":img_label": updated_image_label,
                 }
             )
-            return JsonResponse({"message": "Item updated successfully."}, status=200)
+            response = table.scan()
+            items = response.get("Items", [])
+            
+            # Pass the items to the template
+            return render(request, 'read_all_items.html', {'items': items})
+            # return JsonResponse({"message": "Item updated successfully."}, status=200)
         except Exception as e:
             print(f"Error updating item: {e}")
             return JsonResponse({"error": "Failed to update item."}, status=500)
